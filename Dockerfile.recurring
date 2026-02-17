@@ -1,0 +1,21 @@
+# Recurring Task Engine Dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY backend/recurring-task-engine/package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
+COPY backend/recurring-task-engine/src ./src
+COPY backend/recurring-task-engine/triggers ./triggers
+COPY backend/shared ./shared
+
+# Expose port
+EXPOSE 3002
+
+# Start the service
+CMD ["node", "src/index.js"]

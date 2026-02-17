@@ -1,0 +1,421 @@
+openapi: 3.0.1
+info:
+  title: Advanced Cloud Deployment - Todo Chatbot API
+  description: API specification for the event-driven, cloud-native Todo Chatbot system
+  version: 1.0.0
+servers:
+  - url: https://api.todo-chatbot.example.com/v1
+    description: Production server
+  - url: https://staging-api.todo-chatbot.example.com/v1
+    description: Staging server
+paths:
+  /tasks:
+    get:
+      summary: Get all tasks for the authenticated user
+      description: Retrieve a list of tasks with optional filtering and pagination
+      parameters:
+        - name: status
+          in: query
+          description: Filter tasks by status (pending, completed, cancelled)
+          schema:
+            type: string
+            enum: [pending, completed, cancelled]
+        - name: priority
+          in: query
+          description: Filter tasks by priority (low, medium, high, urgent)
+          schema:
+            type: string
+            enum: [low, medium, high, urgent]
+        - name: dueDateFrom
+          in: query
+          description: Filter tasks with due date on or after this date
+          schema:
+            type: string
+            format: date
+        - name: dueDateTo
+          in: query
+          description: Filter tasks with due date on or before this date
+          schema:
+            type: string
+            format: date
+        - name: tag
+          in: query
+          description: Filter tasks by tag
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          description: Field to sort by (dueDate, priority, createdAt, updatedAt)
+          schema:
+            type: string
+            enum: [dueDate, priority, createdAt, updatedAt]
+        - name: sortOrder
+          in: query
+          description: Sort order (asc, desc)
+          schema:
+            type: string
+            enum: [asc, desc]
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          description: Unauthorized
+    post:
+      summary: Create a new task
+      description: Create a new task with the provided details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid request data
+        '401':
+          description: Unauthorized
+  /tasks/{taskId}:
+    get:
+      summary: Get a specific task
+      description: Retrieve details of a specific task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: ID of the task to retrieve
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Task not found
+    put:
+      summary: Update a task
+      description: Update the details of an existing task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: ID of the task to update
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid request data
+        '401':
+          description: Unauthorized
+        '404':
+          description: Task not found
+    delete:
+      summary: Delete a task
+      description: Delete a specific task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: ID of the task to delete
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Task deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Task not found
+  /tasks/{taskId}/complete:
+    post:
+      summary: Mark a task as completed
+      description: Update the status of a task to completed
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: ID of the task to mark as completed
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task marked as completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Cannot complete a task that is already completed or cancelled
+        '401':
+          description: Unauthorized
+        '404':
+          description: Task not found
+  /users/me/preferences:
+    get:
+      summary: Get user preferences
+      description: Retrieve the current user's preferences
+      responses:
+        '200':
+          description: User preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '401':
+          description: Unauthorized
+    put:
+      summary: Update user preferences
+      description: Update the current user's preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPreferences'
+      responses:
+        '200':
+          description: User preferences updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '400':
+          description: Invalid preferences data
+        '401':
+          description: Unauthorized
+components:
+  schemas:
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - status
+        - userId
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the task
+        title:
+          type: string
+          maxLength: 255
+          description: Title of the task
+        description:
+          type: string
+          description: Detailed description of the task
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date and time when the task is due
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          description: Priority level of the task
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tags associated with the task
+        status:
+          type: string
+          enum: [pending, completed, cancelled]
+          description: Current status of the task
+        userId:
+          type: string
+          format: uuid
+          description: ID of the user who owns the task
+        recurrenceRuleId:
+          type: string
+          format: uuid
+          nullable: true
+          description: ID of the recurrence rule if this is a recurring task
+        createdAt:
+          type: string
+          format: date-time
+          description: Date and time when the task was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date and time when the task was last updated
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date and time when the task was completed
+    CreateTaskRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          description: Title of the task
+        description:
+          type: string
+          description: Detailed description of the task
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date and time when the task is due
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          description: Priority level of the task
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tags associated with the task
+        recurrenceRule:
+          $ref: '#/components/schemas/RecurrenceRule'
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          description: Updated title of the task
+        description:
+          type: string
+          description: Updated description of the task
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Updated date and time when the task is due
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          description: Updated priority level of the task
+        tags:
+          type: array
+          items:
+            type: string
+          description: Updated tags associated with the task
+    RecurrenceRule:
+      type: object
+      required:
+        - frequency
+      properties:
+        frequency:
+          type: string
+          enum: [daily, weekly, monthly, yearly]
+          description: How often the task recurs
+        interval:
+          type: integer
+          minimum: 1
+          default: 1
+          description: Interval between recurrences (e.g., every 2 weeks)
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date when the recurrence should end
+        occurrenceCount:
+          type: integer
+          nullable: true
+          description: Number of times the task should recur
+        daysOfWeek:
+          type: array
+          items:
+            type: string
+            enum: [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
+          description: Days of the week for weekly recurrences
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: Current page number
+        limit:
+          type: integer
+          description: Number of items per page
+        totalPages:
+          type: integer
+          description: Total number of pages
+        totalItems:
+          type: integer
+          description: Total number of items
+    UserPreferences:
+      type: object
+      properties:
+        notificationSettings:
+          type: object
+          properties:
+            emailNotifications:
+              type: boolean
+              description: Whether to send email notifications
+            pushNotifications:
+              type: boolean
+              description: Whether to send push notifications
+            notificationHours:
+              type: object
+              properties:
+                startHour:
+                  type: integer
+                  minimum: 0
+                  maximum: 23
+                  description: Hour to start sending notifications (0-23)
+                endHour:
+                  type: integer
+                  minimum: 0
+                  maximum: 23
+                  description: Hour to stop sending notifications (0-23)

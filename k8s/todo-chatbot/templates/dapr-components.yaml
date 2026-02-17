@@ -1,0 +1,57 @@
+# Dapr component configuration for all services in Advanced Cloud Deployment
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+  - name: brokers
+    value: {{ .Values.global.kafka.brokers }}
+  - name: consumerGroup
+    value: "dapr-consumer-group"
+  - name: clientID
+    value: "dapr-client"
+  - name: authType
+    value: "none"
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+spec:
+  type: state.redis
+  version: v1
+  metadata:
+  - name: redisHost
+    value: {{ .Values.global.redis.host }}
+  - name: redisPassword
+    value: ""
+  - name: actorStateStore
+    value: "true"
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: secretstore
+spec:
+  type: secretstores.kubernetes
+  version: v1
+---
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: app-config
+spec:
+  tracing:
+    samplingRate: "1"
+    zipkin:
+      endpointAddress: {{ .Values.global.tracing.endpoint }}
+  metric:
+    enabled: true
+  httpPipeline:
+    handlers: []
+  grpcPipeline:
+    handlers: []

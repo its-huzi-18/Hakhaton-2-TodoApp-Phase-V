@@ -1,0 +1,516 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+data:
+  task-service-dashboard.json: |-
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Task Service Dashboard",
+        "tags": ["tasks", "service"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Task Operations",
+            "type": "stat",
+            "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+            "targets": [
+              {
+                "expr": "increase(task_created_total[1h])",
+                "legendFormat": "Tasks Created (1h)"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              }
+            }
+          },
+          {
+            "id": 2,
+            "title": "Task Operations Over Time",
+            "type": "graph",
+            "gridPos": { "x": 6, "y": 0, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(task_created_total[5m])",
+                "legendFormat": "Created"
+              },
+              {
+                "expr": "rate(task_updated_total[5m])",
+                "legendFormat": "Updated"
+              },
+              {
+                "expr": "rate(task_completed_total[5m])",
+                "legendFormat": "Completed"
+              },
+              {
+                "expr": "rate(task_deleted_total[5m])",
+                "legendFormat": "Deleted"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Service Requests",
+            "type": "graph",
+            "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(service_requests_total{service=\"task-service\"}[5m])",
+                "legendFormat": "{{method}} {{path}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Response Time",
+            "type": "graph",
+            "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(service_response_time_bucket{service=\"task-service\"}[5m])) by (le, method, path))",
+                "legendFormat": "{{method}} {{path}} (95th percentile)"
+              }
+            ]
+          },
+          {
+            "id": 5,
+            "title": "Service Errors",
+            "type": "graph",
+            "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(service_errors_total{service=\"task-service\"}[5m])",
+                "legendFormat": "{{method}} {{path}}"
+              }
+            ]
+          },
+          {
+            "id": 6,
+            "title": "Active Connections",
+            "type": "graph",
+            "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "service_connections_active{service=\"task-service\"}",
+                "legendFormat": "Active Connections"
+              }
+            ]
+          }
+        ],
+        "time": {
+          "from": "now-6h",
+          "to": "now"
+        },
+        "refresh": "5s"
+      }
+    }
+  reminder-service-dashboard.json: |-
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Reminder Service Dashboard",
+        "tags": ["reminders", "service"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Reminder Operations",
+            "type": "stat",
+            "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+            "targets": [
+              {
+                "expr": "increase(reminder_scheduled_total[1h])",
+                "legendFormat": "Reminders Scheduled (1h)"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              }
+            }
+          },
+          {
+            "id": 2,
+            "title": "Reminder Operations Over Time",
+            "type": "graph",
+            "gridPos": { "x": 6, "y": 0, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(reminder_scheduled_total[5m])",
+                "legendFormat": "Scheduled"
+              },
+              {
+                "expr": "rate(reminder_delivered_total[5m])",
+                "legendFormat": "Delivered"
+              },
+              {
+                "expr": "rate(reminder_failed_total[5m])",
+                "legendFormat": "Failed"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Service Requests",
+            "type": "graph",
+            "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(service_requests_total{service=\"reminder-service\"}[5m])",
+                "legendFormat": "{{method}} {{path}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Response Time",
+            "type": "graph",
+            "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(service_response_time_bucket{service=\"reminder-service\"}[5m])) by (le, method, path))",
+                "legendFormat": "{{method}} {{path}} (95th percentile)"
+              }
+            ]
+          },
+          {
+            "id": 5,
+            "title": "Service Errors",
+            "type": "graph",
+            "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(service_errors_total{service=\"reminder-service\"}[5m])",
+                "legendFormat": "{{method}} {{path}}"
+              }
+            ]
+          },
+          {
+            "id": 6,
+            "title": "Active Connections",
+            "type": "graph",
+            "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "service_connections_active{service=\"reminder-service\"}",
+                "legendFormat": "Active Connections"
+              }
+            ]
+          }
+        ],
+        "time": {
+          "from": "now-6h",
+          "to": "now"
+        },
+        "refresh": "5s"
+      }
+    }
+  notification-service-dashboard.json: |-
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Notification Service Dashboard",
+        "tags": ["notifications", "service"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Notification Operations",
+            "type": "stat",
+            "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+            "targets": [
+              {
+                "expr": "increase(notification_sent_total[1h])",
+                "legendFormat": "Notifications Sent (1h)"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              }
+            }
+          },
+          {
+            "id": 2,
+            "title": "Notification Operations Over Time",
+            "type": "graph",
+            "gridPos": { "x": 6, "y": 0, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(notification_sent_total[5m])",
+                "legendFormat": "Sent"
+              },
+              {
+                "expr": "rate(notification_delivered_total[5m])",
+                "legendFormat": "Delivered"
+              },
+              {
+                "expr": "rate(notification_failed_total[5m])",
+                "legendFormat": "Failed"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Service Requests",
+            "type": "graph",
+            "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(service_requests_total{service=\"notification-service\"}[5m])",
+                "legendFormat": "{{method}} {{path}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Response Time",
+            "type": "graph",
+            "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(service_response_time_bucket{service=\"notification-service\"}[5m])) by (le, method, path))",
+                "legendFormat": "{{method}} {{path}} (95th percentile)"
+              }
+            ]
+          },
+          {
+            "id": 5,
+            "title": "Service Errors",
+            "type": "graph",
+            "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(service_errors_total{service=\"notification-service\"}[5m])",
+                "legendFormat": "{{method}} {{path}}"
+              }
+            ]
+          },
+          {
+            "id": 6,
+            "title": "Active Connections",
+            "type": "graph",
+            "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "service_connections_active{service=\"notification-service\"}",
+                "legendFormat": "Active Connections"
+              }
+            ]
+          }
+        ],
+        "time": {
+          "from": "now-6h",
+          "to": "now"
+        },
+        "refresh": "5s"
+      }
+    }
+  recurring-task-engine-dashboard.json: |-
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Recurring Task Engine Dashboard",
+        "tags": ["recurring-tasks", "service"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Recurring Task Operations",
+            "type": "stat",
+            "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+            "targets": [
+              {
+                "expr": "increase(recurring_task_generated_total[1h])",
+                "legendFormat": "Recurring Tasks Generated (1h)"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              }
+            }
+          },
+          {
+            "id": 2,
+            "title": "Recurring Task Operations Over Time",
+            "type": "graph",
+            "gridPos": { "x": 6, "y": 0, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(recurring_task_generated_total[5m])",
+                "legendFormat": "Generated"
+              },
+              {
+                "expr": "rate(recurring_rule_created_total[5m])",
+                "legendFormat": "Rules Created"
+              },
+              {
+                "expr": "rate(recurring_rule_updated_total[5m])",
+                "legendFormat": "Rules Updated"
+              },
+              {
+                "expr": "rate(recurring_rule_deleted_total[5m])",
+                "legendFormat": "Rules Deleted"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Service Requests",
+            "type": "graph",
+            "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(service_requests_total{service=\"recurring-task-engine\"}[5m])",
+                "legendFormat": "{{method}} {{path}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Response Time",
+            "type": "graph",
+            "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(service_response_time_bucket{service=\"recurring-task-engine\"}[5m])) by (le, method, path))",
+                "legendFormat": "{{method}} {{path}} (95th percentile)"
+              }
+            ]
+          },
+          {
+            "id": 5,
+            "title": "Service Errors",
+            "type": "graph",
+            "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(service_errors_total{service=\"recurring-task-engine\"}[5m])",
+                "legendFormat": "{{method}} {{path}}"
+              }
+            ]
+          },
+          {
+            "id": 6,
+            "title": "Active Connections",
+            "type": "graph",
+            "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "service_connections_active{service=\"recurring-task-engine\"}",
+                "legendFormat": "Active Connections"
+              }
+            ]
+          }
+        ],
+        "time": {
+          "from": "now-6h",
+          "to": "now"
+        },
+        "refresh": "5s"
+      }
+    }
+  audit-service-dashboard.json: |-
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Audit Service Dashboard",
+        "tags": ["audit", "service"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Audit Operations",
+            "type": "stat",
+            "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+            "targets": [
+              {
+                "expr": "increase(audit_entry_created_total[1h])",
+                "legendFormat": "Audit Entries Created (1h)"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              }
+            }
+          },
+          {
+            "id": 2,
+            "title": "Audit Operations Over Time",
+            "type": "graph",
+            "gridPos": { "x": 6, "y": 0, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(audit_entry_created_total[5m])",
+                "legendFormat": "Entries Created"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Service Requests",
+            "type": "graph",
+            "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(service_requests_total{service=\"audit-service\"}[5m])",
+                "legendFormat": "{{method}} {{path}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Response Time",
+            "type": "graph",
+            "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(service_response_time_bucket{service=\"audit-service\"}[5m])) by (le, method, path))",
+                "legendFormat": "{{method}} {{path}} (95th percentile)"
+              }
+            ]
+          },
+          {
+            "id": 5,
+            "title": "Service Errors",
+            "type": "graph",
+            "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "rate(service_errors_total{service=\"audit-service\"}[5m])",
+                "legendFormat": "{{method}} {{path}}"
+              }
+            ]
+          },
+          {
+            "id": 6,
+            "title": "Active Connections",
+            "type": "graph",
+            "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+            "targets": [
+              {
+                "expr": "service_connections_active{service=\"audit-service\"}",
+                "legendFormat": "Active Connections"
+              }
+            ]
+          }
+        ],
+        "time": {
+          "from": "now-6h",
+          "to": "now"
+        },
+        "refresh": "5s"
+      }
+    }

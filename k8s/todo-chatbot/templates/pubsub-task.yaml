@@ -1,0 +1,26 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: task-pubsub
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+  - name: brokers
+    value: "kafka:9092"
+  - name: consumerGroup
+    value: "task-service-consumer-group"
+  - name: clientID
+    value: "task-service-client"
+  - name: authType
+    value: "none"
+  - name: maxMessageBytes
+    value: "1048576"
+  - name: timeoutInSec
+    value: "60"
+  - name: concurrency
+    value: "10"
+scopes:
+  - task-service
+  - reminder-service
+  - audit-service

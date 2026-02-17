@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit-service
+  labels:
+    app: audit-service
+spec:
+  replicas: {{ .Values.auditService.replicaCount }}
+  selector:
+    matchLabels:
+      app: audit-service
+  template:
+    metadata:
+      labels:
+        app: audit-service
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "audit-service"
+        dapr.io/app-port: "3004"
+        dapr.io/config: "app-config"
+        dapr.io/components-path: "/dapr/components"
+    spec:
+      containers:
+      - name: audit-service
+        image: "{{ .Values.auditService.image.repository }}:{{ .Values.auditService.image.tag }}"
+        ports:
+        - containerPort: 3004
+        env:
+        - name: DATABASE_URL
+          value: {{ .Values.auditService.database.url }}
+        - name: SERVICE_NAME
+          value: "audit-service"
+        - name: NODE_ENV
+          value: {{ .Values.global.environment | quote }}
+        resources:
+{{ toYaml .Values.auditService.resources | indent 10 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: audit-service
+  labels:
+    app: audit-service
+spec:
+  selector:
+    app: audit-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3004
+  type: ClusterIP

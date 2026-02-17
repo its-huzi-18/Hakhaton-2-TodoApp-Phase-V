@@ -1,0 +1,170 @@
+openapi: 3.0.0
+info:
+  title: Todo Chatbot API
+  description: API for interacting with the AI-powered Todo Chatbot
+  version: 1.0.0
+servers:
+  - url: https://api.todo-chatbot.com/v1
+    description: Production server
+  - url: https://staging.api.todo-chatbot.com/v1
+    description: Staging server
+paths:
+  /users/{user_id}/chat:
+    post:
+      summary: Send a message to the chatbot and receive a response
+      description: Processes a user's natural language message and returns an AI-generated response along with any tool calls executed
+      operationId: sendMessage
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The ID of the user sending the message
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  description: The user's message to the chatbot
+                  example: "Add buy groceries to my todo list"
+                conversation_id:
+                  type: string
+                  description: Optional ID of an existing conversation to continue
+                  example: "conv_abc123xyz"
+      responses:
+        '200':
+          description: Successful response from the chatbot
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - response
+                  - conversation_id
+                properties:
+                  response:
+                    type: string
+                    description: The AI-generated response to the user's message
+                    example: "I've added 'buy groceries' to your todo list."
+                  conversation_id:
+                    type: string
+                    description: The ID of the conversation (newly created or existing)
+                    example: "conv_abc123xyz"
+                  tool_calls:
+                    type: array
+                    description: List of tools called by the AI in response to the message
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Name of the tool called
+                          example: "add_task_tool"
+                        arguments:
+                          type: object
+                          description: Arguments passed to the tool
+                          example:
+                            title: "buy groceries"
+                            description: "Weekly grocery shopping"
+                  task_updates:
+                    type: array
+                    description: List of tasks affected by the conversation
+                    items:
+                      $ref: '#/components/schemas/TodoTask'
+        '400':
+          description: Bad request - invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - invalid user ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    TodoTask:
+      type: object
+      required:
+        - id
+        - title
+        - status
+        - created_at
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the task
+          example: "task_def456uvw"
+        title:
+          type: string
+          description: Brief description of the task
+          example: "Buy groceries"
+        description:
+          type: string
+          description: Detailed description of the task
+          example: "Weekly grocery shopping"
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+          description: Current status of the task
+          example: "pending"
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          description: Priority level of the task
+          example: "medium"
+        due_date:
+          type: string
+          format: date-time
+          description: Deadline for completing the task
+          example: "2023-12-31T23:59:59Z"
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the task was created
+          example: "2023-11-20T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the task was last updated
+          example: "2023-11-20T10:30:00Z"
+        completed_at:
+          type: string
+          format: date-time
+          description: Timestamp when the task was marked as completed
+          example: "2023-11-20T15:45:00Z"
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "INVALID_INPUT"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "The request contains invalid parameters"

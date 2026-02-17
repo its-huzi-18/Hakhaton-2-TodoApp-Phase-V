@@ -1,0 +1,71 @@
+apiVersion: dapr.io/v1alpha1
+kind: Resiliency
+metadata:
+  name: todo-app-resiliency
+spec:
+  policies:
+    timeouts:
+      general: 5s
+      reminder: 10s
+      notification: 8s
+      task: 5s
+      recurring: 15s
+      audit: 3s
+      
+    retries:
+      pubsubRetry:
+        policy: constant
+        duration: 5s
+        maxRetries: 3
+      serviceRetry:
+        policy: exponential
+        maxInterval: 15s
+        minInterval: 1s
+        maxRetries: 5
+        
+    circuits:
+      defaultCircuitBreaker:
+        maxRequests: 1
+        timeout: 30s
+        trip: consecutiveFailures >= 5
+  
+  targets:
+    apps:
+      task-service:
+        retry: serviceRetry
+        circuitBreaker: defaultCircuitBreaker
+        timeout: general
+      reminder-service:
+        retry: serviceRetry
+        circuitBreaker: defaultCircuitBreaker
+        timeout: reminder
+      recurring-task-engine:
+        retry: serviceRetry
+        circuitBreaker: defaultCircuitBreaker
+        timeout: recurring
+      notification-service:
+        retry: serviceRetry
+        circuitBreaker: defaultCircuitBreaker
+        timeout: notification
+      audit-service:
+        retry: serviceRetry
+        circuitBreaker: defaultCircuitBreaker
+        timeout: audit
+    actors: {}
+    components:
+      task-pubsub:
+        outbound:
+          retry: pubsubRetry
+          timeout: general
+      reminder-pubsub:
+        outbound:
+          retry: pubsubRetry
+          timeout: reminder
+      notification-pubsub:
+        outbound:
+          retry: pubsubRetry
+          timeout: notification
+      audit-pubsub:
+        outbound:
+          retry: pubsubRetry
+          timeout: audit

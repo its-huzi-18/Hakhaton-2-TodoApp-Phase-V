@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recurring-task-engine
+  labels:
+    app: recurring-task-engine
+spec:
+  replicas: {{ .Values.recurringTaskEngine.replicaCount }}
+  selector:
+    matchLabels:
+      app: recurring-task-engine
+  template:
+    metadata:
+      labels:
+        app: recurring-task-engine
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "recurring-task-engine"
+        dapr.io/app-port: "3002"
+        dapr.io/config: "app-config"
+        dapr.io/components-path: "/dapr/components"
+    spec:
+      containers:
+      - name: recurring-task-engine
+        image: "{{ .Values.recurringTaskEngine.image.repository }}:{{ .Values.recurringTaskEngine.image.tag }}"
+        ports:
+        - containerPort: 3002
+        env:
+        - name: DATABASE_URL
+          value: {{ .Values.recurringTaskEngine.database.url }}
+        resources:
+{{ toYaml .Values.recurringTaskEngine.resources | indent 10 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: recurring-task-engine
+  labels:
+    app: recurring-task-engine
+spec:
+  selector:
+    app: recurring-task-engine
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3002
+  type: ClusterIP

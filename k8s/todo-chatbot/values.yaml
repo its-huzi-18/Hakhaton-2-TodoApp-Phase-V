@@ -1,0 +1,121 @@
+# Default values for todo-chatbot Helm chart
+
+global:
+  environment: production
+  kafka:
+    brokers: "kafka:9092"
+  redis:
+    host: "redis-master:6379"
+  tracing:
+    endpoint: "http://zipkin:9411/api/v2/spans"
+
+# Task Service Configuration
+taskService:
+  replicaCount: 1
+  image:
+    repository: task-service
+    tag: latest
+  database:
+    url: "postgresql://user:password@postgres:5432/taskdb"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Reminder Service Configuration
+reminderService:
+  replicaCount: 1
+  image:
+    repository: reminder-service
+    tag: latest
+  database:
+    url: "postgresql://user:password@postgres:5432/reminderdb"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Recurring Task Engine Configuration
+recurringTaskEngine:
+  replicaCount: 1
+  image:
+    repository: recurring-task-engine
+    tag: latest
+  database:
+    url: "postgresql://user:password@postgres:5432/recurringdb"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Notification Service Configuration
+notificationService:
+  replicaCount: 1
+  image:
+    repository: notification-service
+    tag: latest
+  database:
+    url: "postgresql://user:password@postgres:5432/notificationdb"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Audit Service Configuration
+auditService:
+  replicaCount: 1
+  image:
+    repository: audit-service
+    tag: latest
+  database:
+    url: "postgresql://user:password@postgres:5432/auditdb"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Frontend Configuration
+frontend:
+  replicaCount: 1
+  image:
+    repository: frontend
+    tag: latest
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Infrastructure components
+postgres:
+  enabled: true
+  auth:
+    postgresPassword: "password"
+    database: "tododb"
+
+redis:
+  enabled: true
+  auth:
+    enabled: false
+
+kafka:
+  enabled: true
+  defaultReplicationFactor: 1
+  replicaCount: 1

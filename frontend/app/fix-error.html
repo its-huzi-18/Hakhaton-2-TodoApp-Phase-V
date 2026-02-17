@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Chat Error - Clear LocalStorage</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; }
+        .error-box {
+            background: #fee;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .user-info {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        .user-info.valid { background: #c6f6d5; }
+        .user-info.invalid { background: #fed7d7; }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: scale(1.02); }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .success {
+            display: none;
+            background: #c6f6d5;
+            border: 1px solid #48bb78;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            color: #22543d;
+        }
+        .uuid-example {
+            background: #2d3748;
+            color: #48bb78;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fix Chat Error</h1>
+        
+        <div class="error-box">
+            <strong>Issue:</strong> User ID format validation
+        </div>
+
+        <div id="userInfo" class="user-info">
+            Checking your user data...
+        </div>
+
+        <div id="message" class="success">
+            ✅ LocalStorage cleared! Redirecting to login...
+        </div>
+
+        <button class="btn" onclick="clearAndRedirect()">
+            🗑️ Clear LocalStorage & Re-login
+        </button>
+
+        <button class="btn btn-secondary" onclick="goToApp()">
+            ❌ Cancel - Go Back
+        </button>
+
+        <div style="margin-top: 30px; padding: 20px; background: #f7fafc; border-radius: 8px;">
+            <h3 style="margin-bottom: 10px; color: #2d3748;">ℹ️ What's the issue?</h3>
+            <p style="color: #4a5568; font-size: 14px; line-height: 1.6;">
+                Your user ID should be a UUID format like:
+            </p>
+            <div class="uuid-example">550e8400-e29b-41d4-a716-446655440000</div>
+            <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-top: 10px;">
+                But your stored ID might be a short format like: <strong>32jxwkewkzf</strong>
+            </p>
+            <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-top: 10px;">
+                <strong>Solution:</strong> Click the button above to clear your session and login again. 
+                The new user will have a proper UUID.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Check current user data
+        function checkUserData() {
+            const userStr = localStorage.getItem('user');
+            const userInfo = document.getElementById('userInfo');
+            
+            if (!userStr) {
+                userInfo.innerHTML = '<strong>No user data found.</strong><br>You need to login.';
+                userInfo.className = 'user-info';
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(userStr);
+                const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+                const isValid = uuidRegex.test(user.id);
+                
+                userInfo.innerHTML = `
+                    <strong>Current User Data:</strong><br>
+                    <strong>ID:</strong> ${user.id}<br>
+                    <strong>Email:</strong> ${user.email}<br>
+                    <strong>Format:</strong> ${isValid ? '✅ Valid UUID' : '❌ Invalid - Not a UUID'}
+                `;
+                userInfo.className = 'user-info ' + (isValid ? 'valid' : 'invalid');
+            } catch (e) {
+                userInfo.innerHTML = '<strong>Error:</strong> Corrupted user data in localStorage';
+                userInfo.className = 'user-info invalid';
+            }
+        }
+        
+        checkUserData();
+
+        function clearAndRedirect() {
+            localStorage.clear();
+            document.getElementById('message').style.display = 'block';
+            setTimeout(() => {
+                window.location.href = '/auth/login';
+            }, 1500);
+        }
+
+        function goToApp() {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

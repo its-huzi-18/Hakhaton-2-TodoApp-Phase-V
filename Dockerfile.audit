@@ -1,0 +1,21 @@
+# Audit Service Dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY backend/audit-service/package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
+COPY backend/audit-service/src ./src
+COPY backend/audit-service/logs ./logs
+COPY backend/shared ./shared
+
+# Expose port
+EXPOSE 3004
+
+# Start the service
+CMD ["node", "src/index.js"]

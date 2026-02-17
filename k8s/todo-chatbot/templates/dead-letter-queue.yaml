@@ -1,0 +1,40 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: dead-letter-topic
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+  - name: brokers
+    value: "kafka:9092"
+  - name: consumerGroup
+    value: "dead-letter-consumer-group"
+  - name: clientID
+    value: "dead-letter-client"
+  - name: authType
+    value: "none"
+  - name: maxMessageBytes
+    value: "1048576"
+  - name: timeoutInSec
+    value: "60"
+  - name: concurrency
+    value: "5"
+scopes:
+  - all-services
+---
+apiVersion: dapr.io/v1alpha1
+kind: Subscription
+metadata:
+  name: dead-letter-subscription
+spec:
+  topic: dead-letter-topic
+  route: /v1.0/invoke/audit-service/method/process-dead-letter
+  pubsubname: dead-letter-topic
+  metadata:
+    rawPayload: "true"
+  rules:
+  - path: /process-dead-letter
+    match: "event.type == 'dead_letter'"
+scopes:
+  - audit-service

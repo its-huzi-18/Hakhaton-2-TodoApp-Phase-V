@@ -1,0 +1,190 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-alerts
+  namespace: monitoring
+data:
+  alerts.yaml: |-
+    groups:
+    - name: task-service-alerts
+      rules:
+      - alert: TaskServiceHighErrorRate
+        expr: rate(service_errors_total{service="task-service"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate in task service"
+          description: "Task service error rate is {{ $value }} errors per second"
+      
+      - alert: TaskServiceHighLatency
+        expr: histogram_quantile(0.95, rate(service_response_time_bucket{service="task-service"}[5m])) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency in task service"
+          description: "95th percentile response time is {{ $value }}ms"
+      
+      - alert: TaskServiceDown
+        expr: up{service="task-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Task service is down"
+          description: "Task service has been down for more than 1 minute"
+    
+    - name: reminder-service-alerts
+      rules:
+      - alert: ReminderServiceHighErrorRate
+        expr: rate(service_errors_total{service="reminder-service"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate in reminder service"
+          description: "Reminder service error rate is {{ $value }} errors per second"
+      
+      - alert: ReminderServiceHighLatency
+        expr: histogram_quantile(0.95, rate(service_response_time_bucket{service="reminder-service"}[5m])) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency in reminder service"
+          description: "95th percentile response time is {{ $value }}ms"
+      
+      - alert: ReminderServiceDown
+        expr: up{service="reminder-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Reminder service is down"
+          description: "Reminder service has been down for more than 1 minute"
+    
+    - name: notification-service-alerts
+      rules:
+      - alert: NotificationServiceHighErrorRate
+        expr: rate(service_errors_total{service="notification-service"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate in notification service"
+          description: "Notification service error rate is {{ $value }} errors per second"
+      
+      - alert: NotificationServiceHighLatency
+        expr: histogram_quantile(0.95, rate(service_response_time_bucket{service="notification-service"}[5m])) > 2000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency in notification service"
+          description: "95th percentile response time is {{ $value }}ms"
+      
+      - alert: NotificationServiceDown
+        expr: up{service="notification-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Notification service is down"
+          description: "Notification service has been down for more than 1 minute"
+    
+    - name: recurring-task-engine-alerts
+      rules:
+      - alert: RecurringTaskEngineHighErrorRate
+        expr: rate(service_errors_total{service="recurring-task-engine"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate in recurring task engine"
+          description: "Recurring task engine error rate is {{ $value }} errors per second"
+      
+      - alert: RecurringTaskEngineHighLatency
+        expr: histogram_quantile(0.95, rate(service_response_time_bucket{service="recurring-task-engine"}[5m])) > 1500
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency in recurring task engine"
+          description: "95th percentile response time is {{ $value }}ms"
+      
+      - alert: RecurringTaskEngineDown
+        expr: up{service="recurring-task-engine"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Recurring task engine is down"
+          description: "Recurring task engine has been down for more than 1 minute"
+    
+    - name: audit-service-alerts
+      rules:
+      - alert: AuditServiceHighErrorRate
+        expr: rate(service_errors_total{service="audit-service"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate in audit service"
+          description: "Audit service error rate is {{ $value }} errors per second"
+      
+      - alert: AuditServiceHighLatency
+        expr: histogram_quantile(0.95, rate(service_response_time_bucket{service="audit-service"}[5m])) > 500
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency in audit service"
+          description: "95th percentile response time is {{ $value }}ms"
+      
+      - alert: AuditServiceDown
+        expr: up{service="audit-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Audit service is down"
+          description: "Audit service has been down for more than 1 minute"
+    
+    - name: system-alerts
+      rules:
+      - alert: HighMemoryUsage
+        expr: (process_runtime_node_js_heap_used_bytes / process_runtime_node_js_heap_size_limit_bytes) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}%"
+      
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(process_cpu_seconds_total[5m])) * 100) < 20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}%"
+      
+      - alert: DatabaseConnectionIssues
+        expr: increase(database_connection_errors_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connection issues"
+          description: "Detected {{ $value }} database connection errors in the last 5 minutes"
+      
+      - alert: EventProcessingDelay
+        expr: histogram_quantile(0.95, rate(event_processing_duration_bucket[5m])) > 5000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Event processing delay"
+          description: "95th percentile event processing time is {{ $value }}ms"

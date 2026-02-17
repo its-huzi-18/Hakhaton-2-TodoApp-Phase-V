@@ -1,0 +1,33 @@
+# Secrets and sensitive data
+*.secret.yaml
+secrets/
+*.key
+*.crt
+*.pem
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Local development
+.env*
+!.env.example
+
+# Git
+.git/
+.gitignore
+
+# Ignore local values override
+values-local.yaml

@@ -1,0 +1,25 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: notification-pubsub
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+  - name: brokers
+    value: "kafka:9092"
+  - name: consumerGroup
+    value: "notification-service-consumer-group"
+  - name: clientID
+    value: "notification-service-client"
+  - name: authType
+    value: "none"
+  - name: maxMessageBytes
+    value: "1048576"
+  - name: timeoutInSec
+    value: "60"
+  - name: concurrency
+    value: "10"
+scopes:
+  - notification-service
+  - audit-service
