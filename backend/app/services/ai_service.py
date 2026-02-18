@@ -28,17 +28,26 @@ def safe_uuid(val: Optional[str]) -> Optional[UUID]:
 
 class AIService:
     def __init__(self):
-        self.model_name = os.getenv("AI_MODEL", "mistralai/devstral-2512:free")
-        self.api_key = os.getenv("OPENROUTER_API_KEY")
-
+        # Try OpenAI API key first, then fallback to OpenRouter
+        self.api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPENROUTER_API_KEY")
+        
         if not self.api_key:
-            print("[WARNING] OPENROUTER_API_KEY not set. AI functionality will be limited.")
+            print("[WARNING] OPENAI_API_KEY or OPENROUTER_API_KEY not set. AI functionality will be limited.")
             self.client = None
         else:
-            self.client = AsyncOpenAI(
-                api_key=self.api_key,
-                base_url="https://openrouter.ai/api/v1",
-            )
+            # Use OpenAI directly if OPENAI_API_KEY is set, otherwise use OpenRouter
+            if os.getenv("OPENAI_API_KEY"):
+                self.client = AsyncOpenAI(
+                    api_key=self.api_key,
+                    base_url="https://api.openai.com/v1",
+                )
+                self.model_name = os.getenv("AI_MODEL", "gpt-3.5-turbo")
+            else:
+                self.client = AsyncOpenAI(
+                    api_key=self.api_key,
+                    base_url="https://openrouter.ai/api/v1",
+                )
+                self.model_name = os.getenv("AI_MODEL", "mistralai/devstral-2512:free")
 
     # ---------------- System Prompt ----------------
     def _system_prompt(self) -> str:

@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List, Any
-from uuid import UUID, uuid4
+from uuid import uuid4
 from typing import ClassVar
 
 from pydantic import EmailStr, Field
@@ -10,7 +10,7 @@ from sqlmodel import Column, DateTime, Field as SQLField, SQLModel
 
 # Base model for common fields
 class BaseModel(SQLModel):
-    id: UUID = SQLField(default_factory=uuid4, primary_key=True)
+    id: int = SQLField(default=None, primary_key=True)
     created_at: datetime = SQLField(default_factory=datetime.utcnow)
 
 
@@ -27,7 +27,7 @@ class UserCreate(UserBase):
 
 
 class UserRead(UserBase):
-    id: UUID
+    id: int
     created_at: datetime
 
 
@@ -38,7 +38,7 @@ class TaskBase(SQLModel):
 
 
 class Task(TaskBase, BaseModel, table=True):
-    user_id: UUID = Field(foreign_key="user.id", index=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
 
 
 class TaskCreate(TaskBase):
@@ -52,8 +52,8 @@ class TaskUpdate(SQLModel):
 
 
 class TaskRead(TaskBase):
-    id: UUID
-    user_id: UUID
+    id: int
+    user_id: int
     created_at: datetime
 
 
@@ -61,7 +61,7 @@ class TaskRead(TaskBase):
 class ChatMessageBase(SQLModel):
     role: str  # 'user' or 'assistant'
     content: str
-    conversation_id: UUID = Field(foreign_key="conversation.id", index=True)
+    conversation_id: int = Field(foreign_key="conversation.id", index=True)
 
 
 class ChatMessage(ChatMessageBase, BaseModel, table=True):
@@ -95,7 +95,7 @@ class TaskUpdateResponse(SQLModel):
 
 
 class ChatMessageRead(ChatMessageBase):
-    id: UUID
+    id: int
     created_at: datetime
     tool_calls: List[ToolCallResponse] = []
     task_updates: List[TaskUpdateResponse] = []
@@ -103,7 +103,7 @@ class ChatMessageRead(ChatMessageBase):
 
 class ConversationBase(SQLModel):
     title: str = Field(default="New Conversation")
-    user_id: UUID = Field(foreign_key="user.id", index=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
 
 
 class Conversation(ConversationBase, BaseModel, table=True):
@@ -119,7 +119,7 @@ class ConversationUpdate(SQLModel):
 
 
 class ConversationRead(ConversationBase):
-    id: UUID
+    id: int
     created_at: datetime
 
 
@@ -146,7 +146,7 @@ class RecurrenceRule(BaseModel, table=True):
 
 
 class RecurrenceRuleCreate(RecurrenceRuleBase):
-    days_of_week: Optional[list] = Field(default=None)  # for weekly: 0=Sunday, 1=Monday, etc.
+    days_of_week: Optional[list[int]] = Field(default=None)  # for weekly: 0=Sunday, 1=Monday, etc.
 
 
 class RecurrenceRuleUpdate(SQLModel):
@@ -160,17 +160,17 @@ class RecurrenceRuleUpdate(SQLModel):
 
 
 class RecurrenceRuleRead(RecurrenceRuleBase):
-    id: UUID
+    id: int
     created_at: datetime
 
 
 class RecurringTaskBase(TaskBase):
-    recurrence_rule_id: UUID = Field(foreign_key="recurrencerule.id")
+    recurrence_rule_id: int = Field(foreign_key="recurrencerule.id")
 
 
 class RecurringTask(TaskBase, BaseModel, table=True):
-    user_id: UUID = Field(foreign_key="user.id", index=True)
-    recurrence_rule_id: UUID = Field(foreign_key="recurrencerule.id")
+    user_id: int = Field(foreign_key="user.id", index=True)
+    recurrence_rule_id: int = Field(foreign_key="recurrencerule.id")
 
 
 class RecurringTaskCreate(TaskBase):
@@ -185,15 +185,15 @@ class RecurringTaskUpdate(SQLModel):
 
 
 class RecurringTaskRead(TaskBase):
-    id: UUID
-    user_id: UUID
-    recurrence_rule_id: UUID
+    id: int
+    user_id: int
+    recurrence_rule_id: int
     created_at: datetime
 
 
 # Notification Models
 class NotificationBase(SQLModel):
-    user_id: UUID = Field(foreign_key="user.id", index=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
     title: str = Field(min_length=1)
     content: str
     type: str = Field(pattern=r"^(info|warning|error|reminder|task)$")  # notification type
@@ -216,7 +216,7 @@ class NotificationUpdate(SQLModel):
 
 
 class NotificationRead(NotificationBase):
-    id: UUID
+    id: int
     created_at: datetime
 
 

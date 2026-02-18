@@ -39,20 +39,17 @@ class ChatService:
         Returns:
             Dictionary containing the AI response and conversation info
         """
-        # Validate that user_id is a proper UUID string
-        from uuid import UUID as UUID4
-
+        # Validate user_id format - keep as integer, don't convert to UUID
+        # The database uses integer IDs for users
         try:
-            # Validate that the user_id is a proper UUID
-            user_uuid = UUID4(user_id)
+            user_int = int(user_id)
         except ValueError:
-            # Log the error for debugging purposes
-            print(f"ERROR: Invalid user ID format received: '{user_id}'. Expected a valid UUID.")
-            raise ValueError(f"Invalid user ID format: {user_id}. User ID must be a valid UUID.")
+            print(f"ERROR: Invalid user ID format received: '{user_id}'. Expected an integer.")
+            raise ValueError(f"Invalid user ID format: {user_id}. User ID must be an integer.")
 
         # Get or create conversation
         conversation = await self._get_or_create_conversation(
-            user_uuid, db_session, conversation_id
+            user_int, db_session, conversation_id
         )
 
         # Add user's message to the conversation
@@ -98,7 +95,7 @@ class ChatService:
 
     async def _get_or_create_conversation(
         self,
-        user_id: UUID,
+        user_id: int,
         db_session: AsyncSession,
         conversation_id: Optional[str] = None
     ) -> Conversation:
@@ -106,7 +103,7 @@ class ChatService:
         Get an existing conversation or create a new one.
 
         Args:
-            user_id: The ID of the user
+            user_id: The ID of the user (integer)
             db_session: Database session
             conversation_id: Optional conversation ID to retrieve
 
@@ -144,7 +141,7 @@ class ChatService:
             # Create a new conversation
             from app.models import ConversationCreate
             conversation_data = ConversationCreate(
-                title=f"Chat with {user_id}",
+                title=f"Chat with user {user_id}",
                 user_id=user_id,
             )
             conversation = Conversation(

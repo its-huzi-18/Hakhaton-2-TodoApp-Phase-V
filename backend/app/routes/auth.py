@@ -62,28 +62,39 @@ async def register(
     db: AsyncSession = Depends(get_db),
 ):
     """Register a new user."""
-    # Check if user already exists
-    result = await db.execute(select(User).where(User.email == user_data.email))
-    existing_user = result.scalar_one_or_none()
+    import traceback
+    try:
+        # Check if user already exists
+        result = await db.execute(select(User).where(User.email == user_data.email))
+        existing_user = result.scalar_one_or_none()
 
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email already exists",
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User with this email already exists",
+            )
+
+        # Create new user
+        hashed_password = get_password_hash(user_data.password)
+        new_user = User(
+            email=user_data.email,
+            hashed_password=hashed_password,
         )
 
-    # Create new user
-    hashed_password = get_password_hash(user_data.password)
-    new_user = User(
-        email=user_data.email,
-        hashed_password=hashed_password,
-    )
+        db.add(new_user)
+        await db.commit()
+        await db.refresh(new_user)
 
-    db.add(new_user)
-    await db.commit()
-    await db.refresh(new_user)
-
-    return new_user
+        return new_user
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Registration error: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Registration failed: {str(e)}",
+        )
 
 
 @router.post("/login")
@@ -111,7 +122,7 @@ async def login(
 
     # Create access token
     access_token = create_access_token(
-        user_id=str(user.id),
+        user_id=int(user.id),
         email=user.email,
         expires_delta=timedelta(days=7),
     )
@@ -120,7 +131,7 @@ async def login(
         "access_token": access_token,
         "token_type": "bearer",
         "user": {
-            "id": str(user.id),
+            "id": int(user.id),
             "email": user.email,
         },
     }

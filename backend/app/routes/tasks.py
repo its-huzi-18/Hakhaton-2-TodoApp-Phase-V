@@ -18,7 +18,7 @@ async def get_tasks(
 ):
     """Get all tasks for the current user."""
     result = await db.execute(
-        select(Task).where(Task.user_id == user_id).order_by(Task.created_at.desc())
+        select(Task).where(Task.user_id == int(user_id)).order_by(Task.created_at.desc())
     )
     tasks = result.scalars().all()
     return tasks
@@ -31,11 +31,9 @@ async def create_task(
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new task for the current user."""
-    from uuid import UUID
-
     new_task = Task(
         **task_data.model_dump(),
-        user_id=UUID(user_id),
+        user_id=int(user_id),
     )
 
     db.add(new_task)
@@ -47,23 +45,13 @@ async def create_task(
 
 @router.get("/{task_id}", response_model=TaskRead)
 async def get_task(
-    task_id: str,
+    task_id: int,
     user_id: Annotated[str, Depends(get_current_user_id)],
     db: AsyncSession = Depends(get_db),
 ):
     """Get a specific task by ID (user-scoped)."""
-    from uuid import UUID
-
-    try:
-        task_uuid = UUID(task_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid task ID format",
-        )
-
     result = await db.execute(
-        select(Task).where(Task.id == task_uuid, Task.user_id == user_id)
+        select(Task).where(Task.id == task_id, Task.user_id == int(user_id))
     )
     task = result.scalar_one_or_none()
 
@@ -78,24 +66,14 @@ async def get_task(
 
 @router.patch("/{task_id}", response_model=TaskRead)
 async def update_task(
-    task_id: str,
+    task_id: int,
     task_update: TaskUpdate,
     user_id: Annotated[str, Depends(get_current_user_id)],
     db: AsyncSession = Depends(get_db),
 ):
     """Update a task (user-scoped)."""
-    from uuid import UUID
-
-    try:
-        task_uuid = UUID(task_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid task ID format",
-        )
-
     result = await db.execute(
-        select(Task).where(Task.id == task_uuid, Task.user_id == user_id)
+        select(Task).where(Task.id == task_id, Task.user_id == int(user_id))
     )
     task = result.scalar_one_or_none()
 
@@ -118,23 +96,13 @@ async def update_task(
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(
-    task_id: str,
+    task_id: int,
     user_id: Annotated[str, Depends(get_current_user_id)],
     db: AsyncSession = Depends(get_db),
 ):
     """Delete a task (user-scoped)."""
-    from uuid import UUID
-
-    try:
-        task_uuid = UUID(task_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid task ID format",
-        )
-
     result = await db.execute(
-        select(Task).where(Task.id == task_uuid, Task.user_id == user_id)
+        select(Task).where(Task.id == task_id, Task.user_id == int(user_id))
     )
     task = result.scalar_one_or_none()
 

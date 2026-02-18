@@ -1,5 +1,5 @@
 // frontend/src/services/api.js
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7860';
 
 class ApiService {
   constructor() {
@@ -17,9 +17,10 @@ class ApiService {
   async sendMessage(userId, message, conversationId = null) {
     try {
       // Determine the appropriate endpoint based on whether conversationId is provided
+      // The chatbot router already includes /api prefix
       const endpoint = conversationId
-        ? `${this.baseUrl}/conversations/${conversationId}/chat`
-        : `${this.baseUrl}/users/${userId}/chat`;
+        ? `${this.baseUrl}/api/conversations/${conversationId}/chat`
+        : `${this.baseUrl}/api/users/${userId}/chat`;
 
       const token = this.getAuthToken();
 
@@ -36,7 +37,7 @@ class ApiService {
         method: 'POST',
         headers: headers,
         body: JSON.stringify({
-          content: message  // Changed from 'message' to 'content' to match ChatMessageCreate model
+          content: message
         })
       });
 

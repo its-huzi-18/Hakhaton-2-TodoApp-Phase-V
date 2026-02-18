@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { createContext, useContext, ReactNode } from 'react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7860';
 
 export interface Task {
   id: string;
@@ -97,9 +97,9 @@ const useTaskStore = create<TaskState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-      
+
       const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           ...(token && { Authorization: `Bearer ${token}` }),
@@ -128,9 +128,11 @@ const useTaskStore = create<TaskState>((set, get) => ({
   toggleTaskComplete: async (id: string) => {
     const task = get().tasks.find((t) => t.id === id);
     if (!task) return;
+
+    const currentCompleted = task.is_completed || task.status === 'completed';
     
     await get().updateTask(id, {
-      status: task.status === 'completed' ? 'pending' : 'completed',
+      is_completed: !currentCompleted,
     });
   },
 

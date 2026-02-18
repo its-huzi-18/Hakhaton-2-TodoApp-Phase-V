@@ -5,7 +5,16 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.orm import DeclarativeBase
 
 from app.config import settings
-from app.models import User, Task
+from app.models import (
+    Base as SQLModelBase,
+    User,
+    Task,
+    Conversation,
+    ChatMessage,
+    RecurrenceRule,
+    RecurringTask,
+    Notification,
+)
 
 
 # Base class for models - using DeclarativeBase
@@ -50,8 +59,7 @@ async def init_db() -> None:
     """Initialize database tables."""
     async with engine.begin() as conn:
         # Create all tables from SQLModel classes
-        await conn.run_sync(User.metadata.create_all, checkfirst=True)
-        await conn.run_sync(Task.metadata.create_all, checkfirst=True)
+        await conn.run_sync(SQLModelBase.metadata.create_all, checkfirst=True)
 
 
 # Context manager for database sessions

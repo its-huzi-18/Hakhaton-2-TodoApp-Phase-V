@@ -50,15 +50,15 @@ const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       const data = await response.json();
-      
+
       if (typeof window !== 'undefined') {
-        localStorage.setItem('token', data.access_token || data.token);
-        localStorage.setItem('user', JSON.stringify(data.user || { email: credentials.email }));
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('user', JSON.stringify(data.user));
       }
 
       set({
-        user: data.user || { email: credentials.email },
-        token: data.access_token || data.token,
+        user: data.user,
+        token: data.access_token,
         isAuthenticated: true,
         isLoading: false,
       });
@@ -79,24 +79,35 @@ const useAuthStore = create<AuthState>((set, get) => ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ email: data.email, password: data.password }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || 'Registration failed');
+        throw new Error(errorData.detail || errorData.error || 'Registration failed');
       }
 
       const result = await response.json();
-      
+
+      // After successful registration, log the user in
+      const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: data.email, password: data.password }),
+      });
+
+      const loginData = await loginResponse.json();
+
       if (typeof window !== 'undefined') {
-        localStorage.setItem('token', result.access_token || result.token);
-        localStorage.setItem('user', JSON.stringify(result.user || { email: data.email }));
+        localStorage.setItem('token', loginData.access_token);
+        localStorage.setItem('user', JSON.stringify(loginData.user));
       }
 
       set({
-        user: result.user || { email: data.email },
-        token: result.access_token || result.token,
+        user: loginData.user,
+        token: loginData.access_token,
         isAuthenticated: true,
         isLoading: false,
       });
